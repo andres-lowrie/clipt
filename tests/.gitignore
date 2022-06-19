@@ -1,0 +1,5 @@
+# Everything
+*
+
+# except actual nim files
+!*.nim

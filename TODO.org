@@ -1,0 +1,10 @@
+* TODO Build AST [0%]
+- [ ] Lexer
+- [ ] Parse into AST
+* TODO Executor
+It should take an AST and build an execution plan
+* Features
+** Read environment variables
+** isolate each test
+** allow for environment variable setting for each test
+** have a $WORKSPACE,  $CODEBASE that tell the cases where they are
