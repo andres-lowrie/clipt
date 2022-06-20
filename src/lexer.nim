@@ -10,6 +10,26 @@ type TokenType* = enum
 type Token* = object
   tkType*: TokenType
 
+type Lexer* = object
+  input*: string
+  curPos: int
+  readPos: int
+  lookingAt*: char
+
+proc initLexer*(input: string): Lexer =
+  result = Lexer(input: input)
+
+proc readChar*(l: var Lexer) =
+  # are we done reading? If so then we need to set some state so that another
+  # process can check to know where' done
+  if l.readPos >= len(l.input):
+    l.lookingAt = '\0' # which should result to EOF
+  else:
+    l.lookingAt = l.input[l.readPos]
+
+  l.curPos = l.readPos
+  l.readPos += 1
+
 proc toToken*(input: char): Token =
   case input
   of '\n':
@@ -58,6 +78,8 @@ proc toToken*(input: char): Token =
     result = Token(tkType: tkSemiColon)
   of '#':
     result = Token(tkType: tkHash)
+  of '\0':
+    result = Token(tkType: tkEof)
   else:
     result = Token(tkType: tkInvalid)
 

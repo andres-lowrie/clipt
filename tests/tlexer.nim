@@ -1,11 +1,8 @@
 import ../src/lexer
 
-# Empty input should return Invalid
-var input: char
-assert toToken(input).tkType == tkInvalid
-
 # Map tokens to their string representation
 let pairs = @[
+  (tkEof, '\0'),
   (tkInvalid, '!'),
   (tkNewline, '\n'),
   (tkIndent, '\t'),
@@ -35,3 +32,17 @@ for p in pairs:
   let (t, s) = p
   let got = toToken(s)
   assert got.tkType == t, "Want: " & $t & " Got: " & $got.tkType
+
+
+# Basic input traversal
+var lex = initLexer("abc")
+assert lex.input == "abc"
+
+readChar(lex)
+assert lex.lookingAt == 'a'
+readChar(lex)
+assert lex.lookingAt == 'b'
+readChar(lex)
+assert lex.lookingAt == 'c'
+readChar(lex)
+assert lex.lookingAt == '\0'
