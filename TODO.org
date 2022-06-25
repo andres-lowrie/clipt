@@ -1,5 +1,5 @@
 * TODO Build AST [0%]
-- [ ] Lexer
+- [-] Lexer
 - [ ] Parse into AST
 * TODO Executor
 It should take an AST and build an execution plan
