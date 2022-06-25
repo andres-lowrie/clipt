@@ -1,5 +1,9 @@
 import ../src/lexer
 
+proc assumption(want, got: auto): string =
+  result = "Want: " & $want & " Got: " & $got
+
+
 block: # Traversing
   block: # readChar
     var lex = initLexer("abc")
@@ -45,7 +49,7 @@ block: # Tokens
     for p in pairs:
       let (t, s) = p
       let got = toToken(s)
-      assert got.tkType == t, "Want: " & $t & " Got: " & $got.tkType
+      assert got.tkType == t, assumption(t, got.tkType)
 
   block: # nextToken
     let input = ":=$|"
@@ -54,4 +58,13 @@ block: # Tokens
     let want = @[tkColon, tkAssign, tkDollar, tkPipe, tkEof]
     for w in want:
       let got = nextToken(lex)
-      assert got.tkType == w, "Want: " & $w & " Got: " & $got.tkType
+      assert got.tkType == w, assumption(w, got.tkType)
+
+  block: # literal
+    let input = "foobar"
+    var lex = initLexer(input)
+
+    let want = Token(literal: "foobar")
+    let got = nextToken(lex)
+
+    assert got.literal == want.literal, assumption(want.literal, got.literal)

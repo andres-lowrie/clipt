@@ -7,6 +7,7 @@ type TokenType* = enum
   tkSemiColon, tkHash
 
 type Token* = object
+  literal*: string
   tkType*: TokenType
 
 type Lexer* = object
@@ -30,6 +31,12 @@ proc readChar*(l: var Lexer) =
 proc initLexer*(input: string): Lexer =
   result = Lexer(input: input)
   readChar(result)
+
+proc isValidIdOrKey(input: char): bool =
+  if input in {'A'..'Z', 'a'..'z', '_', '-'}:
+    true
+  else:
+    false
 
 proc toToken*(input: char): Token =
   case input
@@ -82,7 +89,13 @@ proc toToken*(input: char): Token =
   of '\0':
     result = Token(tkType: tkEof)
   else:
-    result = Token(tkType: tkInvalid)
+    # discern if keyword or identifier
+    if isValidIdOrKey(input):
+      echo("VALID LETTER" & $input)
+      echo("KEEP ADVANCING POSITION UNTIL WE HIT A NON LITERAL")
+      echo("")
+    else:
+      result = Token(tkType: tkInvalid)
 
 proc nextToken*(l: var Lexer): Token =
   result = toToken(l.lookingAt)

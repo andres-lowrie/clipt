@@ -1,6 +1,7 @@
 * TODO Build AST [0%]
 - [-] Lexer
 - [ ] Parse into AST
+- [ ] create some poc interpreter that can execute stuff
 * TODO Executor
 It should take an AST and build an execution plan
 * Features
@@ -8,3 +9,6 @@ It should take an AST and build an execution plan
 ** isolate each test
 ** allow for environment variable setting for each test
 ** have a $WORKSPACE,  $CODEBASE that tell the cases where they are
+* Questions
+** Do we need whitespace?
+      a command, which will be tokenized into an Identier (perhaps we need some pass on the AST to check commands?), requires the spaces in order to execute correctly
