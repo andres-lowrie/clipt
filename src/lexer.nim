@@ -1,4 +1,3 @@
-#import strutils
 
 type TokenType* = enum
   tkInvalid, tkEof, tkIdentifier, tkNewline, tkIndent, tkColon, tkAssign,
@@ -16,12 +15,10 @@ type Lexer* = object
   readPos: int
   lookingAt*: char
 
-proc initLexer*(input: string): Lexer =
-  result = Lexer(input: input)
 
 proc readChar*(l: var Lexer) =
   # are we done reading? If so then we need to set some state so that another
-  # process can check to know where' done
+  # process can check to know we're done
   if l.readPos >= len(l.input):
     l.lookingAt = '\0' # which should result to EOF
   else:
@@ -29,6 +26,10 @@ proc readChar*(l: var Lexer) =
 
   l.curPos = l.readPos
   l.readPos += 1
+
+proc initLexer*(input: string): Lexer =
+  result = Lexer(input: input)
+  readChar(result)
 
 proc toToken*(input: char): Token =
   case input
@@ -83,3 +84,6 @@ proc toToken*(input: char): Token =
   else:
     result = Token(tkType: tkInvalid)
 
+proc nextToken*(l: var Lexer): Token =
+  result = toToken(l.lookingAt)
+  readChar(l)
