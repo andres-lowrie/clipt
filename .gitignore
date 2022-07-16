@@ -1,5 +1,11 @@
+*
+!*.*
+!*/
+
 nimcache/
 nimblecache/
 htmldocs/
 testresults/
 testresults.html
+
+.DS_Store
