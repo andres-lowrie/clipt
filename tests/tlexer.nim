@@ -9,6 +9,7 @@ block: # Traversing
     var lex = initLexer("abc")
     assert lex.input == "abc"
 
+    readChar(lex) # the initLexer function doesn't move the cursors forward
     assert lex.lookingAt == 'a'
     readChar(lex)
     assert lex.lookingAt == 'b'
@@ -45,11 +46,12 @@ block: # Tokens
       (tkAmpersand, '&'),
       (tkSemiColon, ';'),
       (tkHash, '#'),
+      (tkSpace, ' '),
     ]
     for p in pairs:
       let (t, s) = p
       var lex = initLexer($s)
-      let got = toToken(lex)
+      let got = nextToken(lex)
       assert got.tkType == t, printAssumption(t, got.tkType)
 
   block: # nextToken
@@ -80,3 +82,25 @@ block: # Tokens
 
     assert got.literal == want.literal, printAssumption(want.literal, got.literal)
     assert got.tkType == want.tkType, printAssumption(want.tkType, got.tkType)
+
+  block: # handle non significant whitespace
+    let input = "foo bar"
+    var lex = initLexer(input)
+
+    let want = @[
+      Token(literal: "foo", tkType: tkIdentifier),
+      Token(literal: " ", tkType: tkSpace),
+      Token(literal: "bar", tkType: tkIdentifier),
+    ]
+
+    var got: seq[Token]
+    var cont = true
+    while cont:
+      let g = nextToken(lex)
+      if g.tkType == tkEof:
+        cont = false
+        continue
+      else:
+        got.add(g)
+
+    assert got == want, printAssumption(want, got)

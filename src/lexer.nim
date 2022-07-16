@@ -5,7 +5,7 @@ type TokenType* = enum
   tkDollar, tkHyphen, tkUnderscore, tkSingleQuote, tkDoubleQuote, tkBackslash,
   tkForwardslash, tkLParen, tkRParen, tkLBrace, tkRBrace, tkLBracket,
   tkRBracket, tkLAngleBracket, tkRAngleBracket, tkPipe, tkAmpersand,
-  tkSemiColon, tkHash,
+  tkSemiColon, tkHash, tkSpace
   # Keywords
   tkSetup, tkRun, tkTest
 
@@ -35,7 +35,7 @@ proc readChar*(l: var Lexer) =
 
 proc initLexer*(input: string): Lexer =
   result = Lexer(input: input)
-  readChar(result)
+  # readChar(result)
 
 proc isValidIdOrKey(input: char): bool =
   if input in {'A'..'Z', 'a'..'z', '_', '-'}:
@@ -43,62 +43,64 @@ proc isValidIdOrKey(input: char): bool =
   else:
     false
 
-proc isKeyword(t: Token): bool = false
-
-proc toToken*(l: var Lexer): Token =
+proc nextToken*(l: var Lexer): Token =
+  readChar(l)
   case l.lookingAt
+  of ' ':
+    result = Token(tkType: tkSpace, literal: $l.lookingAt)
   of '\n':
-    result = Token(tkType: tkNewline)
+    result = Token(tkType: tkNewline, literal: $l.lookingAt)
   of '\t':
-    result = Token(tkType: tkIndent)
+    result = Token(tkType: tkIndent, literal: $l.lookingAt)
   of ':':
-    result = Token(tkType: tkColon)
+    result = Token(tkType: tkColon, literal: $l.lookingAt)
   of '=':
-    result = Token(tkType: tkAssign)
+    result = Token(tkType: tkAssign, literal: $l.lookingAt)
   of '$':
-    result = Token(tkType: tkDollar)
+    result = Token(tkType: tkDollar, literal: $l.lookingAt)
   of '-':
-    result = Token(tkType: tkHyphen)
+    result = Token(tkType: tkHyphen, literal: $l.lookingAt)
   of '_':
-    result = Token(tkType: tkUnderscore)
+    result = Token(tkType: tkUnderscore, literal: $l.lookingAt)
   of '\'':
-    result = Token(tkType: tkSingleQuote)
+    result = Token(tkType: tkSingleQuote, literal: $l.lookingAt)
   of '"':
-    result = Token(tkType: tkDoubleQuote)
+    result = Token(tkType: tkDoubleQuote, literal: $l.lookingAt)
   of '\\':
-    result = Token(tkType: tkBackslash)
+    result = Token(tkType: tkBackslash, literal: $l.lookingAt)
   of '/':
-    result = Token(tkType: tkForwardslash)
+    result = Token(tkType: tkForwardslash, literal: $l.lookingAt)
   of '(':
-    result = Token(tkType: tkLParen)
+    result = Token(tkType: tkLParen, literal: $l.lookingAt)
   of ')':
-    result = Token(tkType: tkRParen)
+    result = Token(tkType: tkRParen, literal: $l.lookingAt)
   of '{':
-    result = Token(tkType: tkLBrace)
+    result = Token(tkType: tkLBrace, literal: $l.lookingAt)
   of '}':
-    result = Token(tkType: tkRBrace)
+    result = Token(tkType: tkRBrace, literal: $l.lookingAt)
   of '[':
-    result = Token(tkType: tkLBracket)
+    result = Token(tkType: tkLBracket, literal: $l.lookingAt)
   of ']':
-    result = Token(tkType: tkRBracket)
+    result = Token(tkType: tkRBracket, literal: $l.lookingAt)
   of '<':
-    result = Token(tkType: tkLAngleBracket)
+    result = Token(tkType: tkLAngleBracket, literal: $l.lookingAt)
   of '>':
-    result = Token(tkType: tkRAngleBracket)
+    result = Token(tkType: tkRAngleBracket, literal: $l.lookingAt)
   of '|':
-    result = Token(tkType: tkPipe)
+    result = Token(tkType: tkPipe, literal: $l.lookingAt)
   of '&':
-    result = Token(tkType: tkAmpersand)
+    result = Token(tkType: tkAmpersand, literal: $l.lookingAt)
   of ';':
-    result = Token(tkType: tkSemiColon)
+    result = Token(tkType: tkSemiColon, literal: $l.lookingAt)
   of '#':
-    result = Token(tkType: tkHash)
+    result = Token(tkType: tkHash, literal: $l.lookingAt)
   of '\0':
-    result = Token(tkType: tkEof)
+    result = Token(tkType: tkEof, literal: $l.lookingAt)
   else:
     # discern if keyword or identifier
-    if isValidIdOrKey(l.lookingAt):
-
+    if not isValidIdOrKey(l.lookingAt):
+      result = Token(tkType: tkInvalid, literal: $l.lookingAt)
+    else:
       let fromPos = l.curPos
       while isValidIdOrKey(l.lookingAt):
         readChar(l)
@@ -110,9 +112,6 @@ proc toToken*(l: var Lexer): Token =
       else:
         result = Token(tkType: tkIdentifier, literal: rng)
 
-    else:
-      result = Token(tkType: tkInvalid)
-
-proc nextToken*(l: var Lexer): Token =
-  result = toToken(l)
-  readChar(l)
+      # have to move the positions back so that we don't eat a token
+      l.curPos -= 1
+      l.readPos -= 1
