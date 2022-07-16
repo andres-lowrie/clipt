@@ -5,9 +5,11 @@ type TokenType* = enum
   tkDollar, tkHyphen, tkUnderscore, tkSingleQuote, tkDoubleQuote, tkBackslash,
   tkForwardslash, tkLParen, tkRParen, tkLBrace, tkRBrace, tkLBracket,
   tkRBracket, tkLAngleBracket, tkRAngleBracket, tkPipe, tkAmpersand,
-  tkSemiColon, tkHash, tkSpace, tkNumber
+  tkSemiColon, tkHash, tkSpace, tkNumber, tkPeriod, tkAt
   # Keywords
-  tkSetup, tkRun, tkTest
+  tkSetup, tkRun, tkTest,
+  # Operator
+  tkEQ, tkNEQ, tkRgxEQ, tkRgxLit
 
 type Token* = object
   literal*: string
@@ -21,7 +23,6 @@ type Lexer* = object
 
 const keywords = {"setup": tkSetup, "run": tkRun, "test": tkTest}.toTable
 
-
 proc readChar*(l: var Lexer) =
   # are we done reading? If so then we need to set some state so that another
   # process can check to know we're done
@@ -33,9 +34,14 @@ proc readChar*(l: var Lexer) =
   l.curPos = l.readPos
   l.readPos += 1
 
+proc peekChar*(l: var Lexer): char =
+  if l.readPos >= len(l.input):
+    result = '\0' # not sure what to return here
+  else:
+    result = l.input[l.readPos]
+
 proc initLexer*(input: string): Lexer =
   result = Lexer(input: input)
-  # readChar(result)
 
 proc isValidIdOrKey(input: char): bool =
   if input in {'A'..'Z', 'a'..'z', '_', '-'}:
@@ -43,7 +49,7 @@ proc isValidIdOrKey(input: char): bool =
   else:
     false
 
-proc isNumber(input: char): bool = 
+proc isNumber(input: char): bool =
   if input in {'0'..'9'}:
     true
   else:
@@ -58,10 +64,36 @@ proc nextToken*(l: var Lexer): Token =
     result = Token(tkType: tkNewline, literal: $l.lookingAt)
   of '\t':
     result = Token(tkType: tkIndent, literal: $l.lookingAt)
+  of '=':
+    if peekChar(l) == '=':
+      let cur = l.lookingAt
+      readChar(l)
+      let literal = $cur & l.lookingAt
+      result = Token(tkType: tkEQ, literal: literal)
+    else:
+      result = Token(tkType: tkAssign, literal: $l.lookingAt)
+  of '!':
+    if peekChar(l) == '=':
+      let cur = l.lookingAt
+      readChar(l)
+      let literal = $cur & l.lookingAt
+      result = Token(tkType: tkNEQ, literal: literal)
+    else:
+      result = Token(tkType: tkAssign, literal: $l.lookingAt)
+  of '~':
+    if peekChar(l) == '=':
+      let cur = l.lookingAt
+      readChar(l)
+      let literal = $cur & l.lookingAt
+      result = Token(tkType: tkRgxEQ, literal: literal)
+    else:
+      result = Token(tkType: tkAssign, literal: $l.lookingAt)
   of ':':
     result = Token(tkType: tkColon, literal: $l.lookingAt)
-  of '=':
-    result = Token(tkType: tkAssign, literal: $l.lookingAt)
+  of '@':
+    result = Token(tkType: tkAt, literal: $l.lookingAt)
+  of '.':
+    result = Token(tkType: tkPeriod, literal: $l.lookingAt)
   of '$':
     result = Token(tkType: tkDollar, literal: $l.lookingAt)
   of '-':
@@ -103,6 +135,7 @@ proc nextToken*(l: var Lexer): Token =
   of '\0':
     result = Token(tkType: tkEof, literal: $l.lookingAt)
   else:
+    # More complex ones
     if isNumber(l.lookingAt):
       result = Token(tkType: tkNumber, literal: $l.lookingAt)
       return

@@ -18,11 +18,10 @@ block: # Traversing
     readChar(lex)
     assert lex.lookingAt == '\0'
 
-block: # Tokens
+block: # Tokens simple
   block: # tokens expected given literals
     let pairs = @[
       (tkEof, '\0'),
-      (tkInvalid, '!'),
       (tkNewline, '\n'),
       (tkIndent, '\t'),
       (tkColon, ':'),
@@ -47,6 +46,8 @@ block: # Tokens
       (tkSemiColon, ';'),
       (tkHash, '#'),
       (tkSpace, ' '),
+      (tkAt, '@'),
+      (tkPeriod, '.'),
     ]
     for p in pairs:
       let (t, s) = p
@@ -164,4 +165,37 @@ block: # Tokens
       else:
         got.add(g)
 
+    assert got == want, printAssumption(want, got)
+
+block: # Tokens complex
+  block: # equal (==)
+    let input = "=="
+    var lex = initLexer(input)
+    let want = Token(literal: "==", tkType: tkEQ)
+
+    let got = nextToken(lex)
+    assert got == want, printAssumption(want, got)
+
+  block: # not equal (!=)
+    let input = "!="
+    var lex = initLexer(input)
+    let want = Token(literal: "!=", tkType: tkNEQ)
+
+    let got = nextToken(lex)
+    assert got == want, printAssumption(want, got)
+
+  block: # regex match (~=)
+    let input = "~="
+    var lex = initLexer(input)
+    let want = Token(literal: "~=", tkType: tkRgxEQ)
+
+    let got = nextToken(lex)
+    assert got == want, printAssumption(want, got)
+
+  block: # regex literal
+    let input = "~="
+    var lex = initLexer(input)
+    let want = Token(literal: "~=", tkType: tkRgxEQ)
+
+    let got = nextToken(lex)
     assert got == want, printAssumption(want, got)
