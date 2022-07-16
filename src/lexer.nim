@@ -5,7 +5,7 @@ type TokenType* = enum
   tkDollar, tkHyphen, tkUnderscore, tkSingleQuote, tkDoubleQuote, tkBackslash,
   tkForwardslash, tkLParen, tkRParen, tkLBrace, tkRBrace, tkLBracket,
   tkRBracket, tkLAngleBracket, tkRAngleBracket, tkPipe, tkAmpersand,
-  tkSemiColon, tkHash, tkSpace
+  tkSemiColon, tkHash, tkSpace, tkNumber
   # Keywords
   tkSetup, tkRun, tkTest
 
@@ -39,6 +39,12 @@ proc initLexer*(input: string): Lexer =
 
 proc isValidIdOrKey(input: char): bool =
   if input in {'A'..'Z', 'a'..'z', '_', '-'}:
+    true
+  else:
+    false
+
+proc isNumber(input: char): bool = 
+  if input in {'0'..'9'}:
     true
   else:
     false
@@ -97,6 +103,10 @@ proc nextToken*(l: var Lexer): Token =
   of '\0':
     result = Token(tkType: tkEof, literal: $l.lookingAt)
   else:
+    if isNumber(l.lookingAt):
+      result = Token(tkType: tkNumber, literal: $l.lookingAt)
+      return
+
     # discern if keyword or identifier
     if not isValidIdOrKey(l.lookingAt):
       result = Token(tkType: tkInvalid, literal: $l.lookingAt)

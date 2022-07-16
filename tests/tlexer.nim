@@ -83,6 +83,16 @@ block: # Tokens
     assert got.literal == want.literal, printAssumption(want.literal, got.literal)
     assert got.tkType == want.tkType, printAssumption(want.tkType, got.tkType)
 
+  block: # number
+    let input = "1"
+    var lex = initLexer(input)
+
+    let want = Token(literal: "1", tkType: tkNumber)
+    let got = nextToken(lex)
+
+    assert got.literal == want.literal, printAssumption(want.literal, got.literal)
+    assert got.tkType == want.tkType, printAssumption(want.tkType, got.tkType)
+
   block: # handle non significant whitespace
     let input = "foo bar"
     var lex = initLexer(input)
@@ -91,6 +101,57 @@ block: # Tokens
       Token(literal: "foo", tkType: tkIdentifier),
       Token(literal: " ", tkType: tkSpace),
       Token(literal: "bar", tkType: tkIdentifier),
+    ]
+
+    var got: seq[Token]
+    var cont = true
+    while cont:
+      let g = nextToken(lex)
+      if g.tkType == tkEof:
+        cont = false
+        continue
+      else:
+        got.add(g)
+
+    assert got == want, printAssumption(want, got)
+
+  block:
+    let input = "foo\nbar"
+    var lex = initLexer(input)
+
+    let want = @[
+      Token(literal: "foo", tkType: tkIdentifier),
+      Token(literal: "\n", tkType: tkNewline),
+      Token(literal: "bar", tkType: tkIdentifier),
+    ]
+
+    var got: seq[Token]
+    var cont = true
+    while cont:
+      let g = nextToken(lex)
+      if g.tkType == tkEof:
+        cont = false
+        continue
+      else:
+        got.add(g)
+
+    assert got == want, printAssumption(want, got)
+
+  block:
+    let input = " foo\t\n bar\n\nbaz:"
+    var lex = initLexer(input)
+
+    let want = @[
+      Token(literal: " ", tkType: tkSpace),
+      Token(literal: "foo", tkType: tkIdentifier),
+      Token(literal: "\t", tkType: tkIndent),
+      Token(literal: "\n", tkType: tkNewline),
+      Token(literal: " ", tkType: tkSpace),
+      Token(literal: "bar", tkType: tkIdentifier),
+      Token(literal: "\n", tkType: tkNewline),
+      Token(literal: "\n", tkType: tkNewline),
+      Token(literal: "baz", tkType: tkIdentifier),
+      Token(literal: ":", tkType: tkColon),
     ]
 
     var got: seq[Token]
