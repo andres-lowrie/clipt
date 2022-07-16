@@ -1,10 +1,13 @@
+import tables
 
 type TokenType* = enum
   tkInvalid, tkEof, tkIdentifier, tkNewline, tkIndent, tkColon, tkAssign,
   tkDollar, tkHyphen, tkUnderscore, tkSingleQuote, tkDoubleQuote, tkBackslash,
   tkForwardslash, tkLParen, tkRParen, tkLBrace, tkRBrace, tkLBracket,
   tkRBracket, tkLAngleBracket, tkRAngleBracket, tkPipe, tkAmpersand,
-  tkSemiColon, tkHash
+  tkSemiColon, tkHash,
+  # Keywords
+  tkSetup, tkRun, tkTest
 
 type Token* = object
   literal*: string
@@ -12,9 +15,11 @@ type Token* = object
 
 type Lexer* = object
   input*: string
-  curPos: int
+  curPos*: int
   readPos: int
   lookingAt*: char
+
+const keywords = {"setup": tkSetup, "run": tkRun, "test": tkTest}.toTable
 
 
 proc readChar*(l: var Lexer) =
@@ -38,8 +43,10 @@ proc isValidIdOrKey(input: char): bool =
   else:
     false
 
-proc toToken*(input: char): Token =
-  case input
+proc isKeyword(t: Token): bool = false
+
+proc toToken*(l: var Lexer): Token =
+  case l.lookingAt
   of '\n':
     result = Token(tkType: tkNewline)
   of '\t':
@@ -90,13 +97,22 @@ proc toToken*(input: char): Token =
     result = Token(tkType: tkEof)
   else:
     # discern if keyword or identifier
-    if isValidIdOrKey(input):
-      echo("VALID LETTER" & $input)
-      echo("KEEP ADVANCING POSITION UNTIL WE HIT A NON LITERAL")
-      echo("")
+    if isValidIdOrKey(l.lookingAt):
+
+      let fromPos = l.curPos
+      while isValidIdOrKey(l.lookingAt):
+        readChar(l)
+      let toPos = l.curPos-1
+
+      let rng = l.input[fromPos..toPos]
+      if keywords.hasKey(rng):
+        result = Token(tkType: keywords[rng], literal: rng)
+      else:
+        result = Token(tkType: tkIdentifier, literal: rng)
+
     else:
       result = Token(tkType: tkInvalid)
 
 proc nextToken*(l: var Lexer): Token =
-  result = toToken(l.lookingAt)
+  result = toToken(l)
   readChar(l)

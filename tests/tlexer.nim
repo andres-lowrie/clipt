@@ -1,6 +1,6 @@
 import ../src/lexer
 
-proc assumption(want, got: auto): string =
+proc printAssumption(want, got: auto): string =
   result = "Want: " & $want & " Got: " & $got
 
 
@@ -48,8 +48,9 @@ block: # Tokens
     ]
     for p in pairs:
       let (t, s) = p
-      let got = toToken(s)
-      assert got.tkType == t, assumption(t, got.tkType)
+      var lex = initLexer($s)
+      let got = toToken(lex)
+      assert got.tkType == t, printAssumption(t, got.tkType)
 
   block: # nextToken
     let input = ":=$|"
@@ -58,13 +59,24 @@ block: # Tokens
     let want = @[tkColon, tkAssign, tkDollar, tkPipe, tkEof]
     for w in want:
       let got = nextToken(lex)
-      assert got.tkType == w, assumption(w, got.tkType)
+      assert got.tkType == w, printAssumption(w, got.tkType)
 
-  block: # literal
+  block: # identider
     let input = "foobar"
     var lex = initLexer(input)
 
-    let want = Token(literal: "foobar")
+    let want = Token(literal: "foobar", tkType: tkIdentifier)
     let got = nextToken(lex)
 
-    assert got.literal == want.literal, assumption(want.literal, got.literal)
+    assert got.literal == want.literal, printAssumption(want.literal, got.literal)
+    assert got.tkType == want.tkType, printAssumption(want.tkType, got.tkType)
+
+  block: # keyword
+    let input = "setup"
+    var lex = initLexer(input)
+
+    let want = Token(literal: "setup", tkType: tkSetup)
+    let got = nextToken(lex)
+
+    assert got.literal == want.literal, printAssumption(want.literal, got.literal)
+    assert got.tkType == want.tkType, printAssumption(want.tkType, got.tkType)
