@@ -18,7 +18,7 @@ suite: "prog sub-command"
     file: /local_disk/file, /some/input/somewhere  
 
     setup:
-      local = /tmp/blah            # set variables for exapansion
+      local = /tmp/blah            # set variables for expansion
       mkdir local                  # run commands that you don't need output just as you normally would
 
       compile -o local my_program
