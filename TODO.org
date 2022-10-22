@@ -1,6 +1,6 @@
-* TODO Build AST [0%]
-- [-] Lexer
-- [ ] Parse into AST
+* TODO Build AST [33%]
+- [X] Lexer
+- [-] Parse into AST
 - [ ] create some poc interpreter that can execute stuff
 * TODO Executor
 It should take an AST and build an execution plan
